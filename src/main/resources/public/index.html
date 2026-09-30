@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bank Heist</title><link rel="stylesheet" href="/style.css"></head>
+<body><main>
+<header><span class="eyebrow">A classroom experiment in trust & timing</span><h1>BANK HEIST<span>◆</span></h1><p>Bank your bag now, or stay inside and risk the alarm.</p><span id="connection" role="status">Connecting…</span></header>
+<section id="join"><form id="join-form"><label for="name">Your alias</label><div class="row"><input id="name" required maxlength="30" placeholder="The Professor" autocomplete="nickname"><button>Join the crew</button></div></form></section>
+<p id="identity"></p><p id="error" role="alert"></p>
+<section class="vault"><div class="row spread"><span id="phase">LOBBY</span><span id="round">Round 0 / 10</span></div><p id="bag-label">Your bag</p><h2 id="bag">0.00 <small>gold</small></h2><p id="time">Waiting for the teacher</p><p id="bag-hint">Your bag grows at 10 gold per second.</p><p id="comparison" aria-live="polite"></p><button id="escape" disabled>ESCAPE &amp; BANK MY BAG</button><p id="result" aria-live="polite"></p></section>
+<section><h2>The crew</h2><table><thead><tr><th>Player</th><th>Status</th><th>This round</th><th>Total gold</th></tr></thead><tbody id="players"></tbody></table><p id="winners"></p></section>
+<details><summary>Teacher controls</summary><label for="teacher-key">Teacher key (default: classroom)</label><input id="teacher-key" type="password" autocomplete="off"><div class="row"><button id="match">Create match</button><button id="next">Start next round</button><button id="deliveries">Inspect webhooks</button></div><p>Each match freezes the crew and lasts 10 rounds. Start each round manually.</p><pre id="delivery-log"></pre></details>
+<footer>REST sends the actions. WebSockets carry the live state. Webhooks deliver the results.</footer>
+</main><script src="/app.js"></script></body></html>

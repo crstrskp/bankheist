@@ -1,0 +1,12 @@
+{
+  "eventId": "demo-event-1",
+  "matchId": "demo-match",
+  "roundId": "demo-round-1",
+  "outcome": "ALL_ESCAPED",
+  "bagValue": 200.0,
+  "endedAt": "2026-09-30T12:00:00Z",
+  "earnings": [
+    {"playerId": "alice", "earnings": 100.0, "status": "ESCAPED"},
+    {"playerId": "bob", "earnings": 200.0, "status": "ESCAPED"}
+  ]
+}

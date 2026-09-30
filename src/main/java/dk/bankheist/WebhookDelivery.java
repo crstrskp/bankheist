@@ -28,6 +28,7 @@ public final class WebhookDelivery implements AutoCloseable {
         worker.execute(() -> deliver(event.eventId()));
     }
     public synchronized List<Delivery> list() { return List.copyOf(deliveries.values()); }
+    public synchronized void clear() { deliveries.clear(); }
     public synchronized boolean retry(String id) {
         Delivery old = deliveries.get(id);
         if (old == null) return false;
@@ -38,6 +39,7 @@ public final class WebhookDelivery implements AutoCloseable {
     private void deliver(String id) {
         Delivery old;
         synchronized (this) { old = deliveries.get(id); }
+        if (old == null) return; // A teacher reset removed this delivery.
         String error = null;
         try {
             HttpRequest request = HttpRequest.newBuilder(receiver).timeout(Duration.ofSeconds(2))
@@ -51,7 +53,10 @@ public final class WebhookDelivery implements AutoCloseable {
         }
         int attempts = old.attempts() + 1;
         String status = error == null ? "DELIVERED" : attempts >= maxAttempts ? "FAILED" : "PENDING";
-        synchronized (this) { deliveries.put(id, new Delivery(old.event(), attempts, status, error)); }
+        synchronized (this) {
+            if (deliveries.get(id) != old) return;
+            deliveries.put(id, new Delivery(old.event(), attempts, status, error));
+        }
         if (error != null) System.err.println("Webhook " + id + " attempt " + attempts + ": " + error);
         if (status.equals("PENDING") && !worker.isShutdown())
             worker.schedule(() -> deliver(id), Math.min(30_000, retryMillis * (1L << Math.min(attempts - 1, 20))), TimeUnit.MILLISECONDS);

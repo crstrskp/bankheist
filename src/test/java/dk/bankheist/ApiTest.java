@@ -67,6 +67,21 @@ class ApiTest {
         board().queryParam("matchId", round.matchId()).get("/leaderboard").then().statusCode(200)
                 .body("roundsReceived", equalTo(1)).body("scores.score", contains(200f, 200f));
     }
+    @Test void teacherResetKicksPlayersAndInvalidatesTheirTokens() {
+        api().post("/admin/reset").then().statusCode(401);
+
+        teacher().post("/admin/reset").then().statusCode(200)
+                .body("phase", equalTo("LOBBY"))
+                .body("roundNumber", equalTo(0))
+                .body("players", empty());
+
+        api().header("Authorization", "Bearer " + alice.reconnectToken())
+                .get("/players/me").then().statusCode(401);
+        teacher().get("/webhook-deliveries").then().body("$", empty());
+        teacher().post("/matches").then().statusCode(409);
+        join("Alice again");
+        api().get("/state").then().body("players.name", contains("Alice again"));
+    }
     @Test void expiredEscapeReturnsConflictAndRecordsAlarm() {
         Snapshot round = round(); now.set(10_000_000_000L);
         game.escape(round.roundId(), alice.reconnectToken());
@@ -146,6 +161,7 @@ class ApiTest {
         assertTrue(snapshot.path("revision").asLong() >= revision);
         second.sendClose(WebSocket.NORMAL_CLOSURE, "done").join();
     }
+
     private WebSocket connect(BlockingQueue<String> messages) {
         return HttpClient.newHttpClient().newWebSocketBuilder().connectTimeout(Duration.ofSeconds(3))
                 .buildAsync(URI.create("ws://localhost:" + server.port() + "/ws/game"), new WebSocket.Listener() {

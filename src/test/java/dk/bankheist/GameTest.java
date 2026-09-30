@@ -146,4 +146,20 @@ class GameTest {
         for (int i = 0; i < 8; i++) lobby.join("Player " + i);
         assertThrows(ConflictResponse.class, () -> lobby.join("Ninth"));
     }
+    @Test void resetClearsPlayersMatchRoundScoresAndOldCredentials() {
+        Snapshot round = start();
+        now.addAndGet(10_000_000_000L);
+        game.escape(round.roundId(), alice.reconnectToken());
+
+        Snapshot reset = game.reset();
+
+        assertEquals("LOBBY", reset.phase());
+        assertNull(reset.matchId());
+        assertNull(reset.roundId());
+        assertEquals(0, reset.roundNumber());
+        assertTrue(reset.players().isEmpty());
+        assertNull(reset.result());
+        assertThrows(UnauthorizedResponse.class, () -> game.identity(alice.reconnectToken()));
+        assertEquals("GAME_RESET", game.events().stream().reduce((first, second) -> second).orElseThrow().type());
+    }
 }

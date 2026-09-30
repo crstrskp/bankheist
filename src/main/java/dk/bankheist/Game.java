@@ -64,6 +64,20 @@ public final class Game {
         phase = "READY"; result = null;
         emit("STATE_SNAPSHOT"); return snapshot();
     }
+    public synchronized Snapshot reset() {
+        players.clear();
+        scores.clear();
+        banked.clear();
+        matchId = null;
+        roundId = null;
+        roundNumber = 0;
+        startsAt = 0;
+        deadline = 0;
+        phase = "LOBBY";
+        result = null;
+        emit("GAME_RESET");
+        return snapshot();
+    }
     public synchronized Snapshot startRound(String requestedMatch) {
         if (!Objects.equals(matchId, requestedMatch) || !(phase.equals("READY") || phase.equals("RESULTS")))
             throw new ConflictResponse("Match is stale or not ready for another round");

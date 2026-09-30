@@ -15,8 +15,10 @@ public final class GameServer implements AutoCloseable {
     private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
     private final ExecutorService broadcaster = Executors.newSingleThreadExecutor();
     private final Javalin app;
+
     public GameServer(Game game, WebhookDelivery webhooks, String teacherKey) {
         this.game = game; this.webhooks = webhooks;
+
         app = Javalin.create(c -> c.staticFiles.add("/public"));
         app.get("/health", ctx -> ctx.json(Map.of("status", "ok")));
         app.get("/state", ctx -> ctx.json(game.snapshot()));
@@ -31,6 +33,11 @@ public final class GameServer implements AutoCloseable {
         app.post("/matches", ctx -> { teacher(ctx, teacherKey); ctx.status(201).json(game.createMatch()); });
         app.post("/matches/{matchId}/rounds", ctx -> {
             teacher(ctx, teacherKey); ctx.status(201).json(game.startRound(ctx.pathParam("matchId")));
+        });
+        app.post("/admin/reset", ctx -> {
+            teacher(ctx, teacherKey);
+            webhooks.clear();
+            ctx.json(game.reset());
         });
         app.post("/rounds/{roundId}/escape", ctx -> ctx.json(game.escape(ctx.pathParam("roundId"), token(ctx))));
         app.get("/webhook-deliveries", ctx -> { teacher(ctx, teacherKey); ctx.json(webhooks.list()); });

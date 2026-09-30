@@ -20,7 +20,12 @@ async function action(work) {
 }
 function render(s) {
   state = s;
-  const me = s.players.find(p => p.playerId === credentials?.playerId);
+  let me = s.players.find(p => p.playerId === credentials?.playerId);
+  // A teacher reset invalidates every reconnect token and returns open browsers to Join.
+  if (credentials && !me && s.phase === 'LOBBY') {
+    credentials = null;
+    sessionStorage.removeItem('heist-player');
+  }
   $('join').hidden = !!credentials;
   $('identity').textContent = me ? `Playing as ${me.name}${me.participant ? '' : ' · waiting for the next match'}` : 'Join the crew, or watch as a spectator.';
   $('phase').textContent = s.phase;
@@ -88,6 +93,13 @@ $('next').onclick = () => action(() => api(`/matches/${state.matchId}/rounds`, {
 $('deliveries').onclick = () => action(async () => {
   $('delivery-log').textContent = JSON.stringify(await api('/webhook-deliveries', {teacher:true, method:'GET'}), null, 2);
 });
+$('reset').onclick = () => {
+  if (!confirm('Reset the entire game and kick every player? Everyone must rejoin.')) return;
+  action(async () => {
+    await api('/admin/reset', {teacher:true});
+    $('delivery-log').textContent = '';
+  });
+};
 async function restoreIdentity() {
   if (!credentials) return;
   const response = await fetch('/players/me', {headers:{Authorization:`Bearer ${credentials.reconnectToken}`}});

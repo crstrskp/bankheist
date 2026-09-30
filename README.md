@@ -4,6 +4,10 @@ A small Java classroom game for teaching **REST, WebSockets, webhooks, and REST 
 
 Two independently runnable Javalin apps, one plain HTML/JavaScript UI, and in-memory state. Java 17+, Maven 3.9+, no database or frontend build required. Dependencies are pinned in `pom.xml`.
 
+## Deploy on your VPS
+
+See the [Docker + Caddy deployment guide](deploy/README.md) for `heist.tjorne.dk`. It uses a separate Compose project connected to your existing Caddy network.
+
 ## Run it before class
 
 ```sh
